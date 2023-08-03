@@ -51,7 +51,15 @@ Converting to a full-tty shell after getting a shell:
 ```
 Checklist:
   1) check sudo -l
-  2) check for suid perms "find / -perm -4000 -type f -exec ls -la {} 2>/dev/null"
+  2) check for suid perms :
+   ```
+     # Find all SUID files:
+     find / -perm -4000 -print
+     # Find all SGID files:
+     find / -perm -2000 -print  
+     find / -perm -4000 -type f -exec ls -la {} 2>/dev/null"
+     find / -perm -u=s -type f 2>/dev/null
+   ```
   3) check mounts
   4) check others users in the host
   5) check kernel version/sudo version
