@@ -1,6 +1,8 @@
 # Active Directory
 [Reference Video](https://www.youtube.com/watch?v=pdgBU9MDAwE&t=36188s)
 
+[Reference Video #2](https://youtu.be/-vjF3kgvWVg)
+
 [AD Mind Map](https://orange-cyberdefense.github.io/ocd-mindmaps/)
 
 [Unique Methodology](https://youtu.be/aZsysS4BaTs)
@@ -26,6 +28,21 @@ smbclient -N //<ip>/<share>
 smbclient -U <username> -L <ip>
 ```
 
+RPCClient
+```
+rpcclient -U '' -N <ip>
+rpcclient $>enumdomusers
+```
+
+LDAPSearch
+```
+ldapsearch -H ldap://<ip> -x -s base namingcontext
+ldapsearch -H ldap://<ip> -x -b"DC=<prefix-domain-name>,DC=<prefix-domain-name>"
+eg: ldapsearch -H ldap://<ip> -x -b"DC=htb,DC=local"
+ldapsearch -H ldap://<ip> -x -b"DC=<prefix-domain-name>,DC=<prefix-domain-name>" '(objectClass=User)' "sAMAccountName" | grep sAMAccountName
+```
+
+
 Evil-WinRM:
 ```
 evil-winrm -i <ip> -u <username> -p '<password>'
@@ -35,7 +52,14 @@ impacket-GetNPUsers
 ```
 impacket-GetNPUsers -dc-ip <ip> <domain>/<account-name> -no-pass
 impacket-GetNPUsers -dc-ip <ip> <domain>/<account-name>:<pass>
+impacket-GetNPUsers -dc-ip <ip> -request '<domain>/'
 ```
+
+impacket-GetUserSPNs
+```
+impacket-GetUserSPNs -request -dc-ip <ip> <domain>/<account-name>:<pass>
+```
+
 
 impacket-secretsdump
 ```
@@ -149,7 +173,13 @@ olevba file.xlsm
 ```
 
 ## Methodology
+- A machine is a Domain Controller if it has port 88 (kerberos). 
+
 - If ports 139,445(SMB), 389(ldap) ,464 (kpasswd) are open so enumerating the services in this order (PhD Security's methodology)
+
+- If port 135(msrpc) is open try to get the domain users using a tool called ``rpcclient``.
+
+- If port 389(ldap) is open we can use ``ldapsearch`` to enumerate domain users as well.
 
 - If anonymous access to ftp, smb is available check the FS, and try to get sensitive informations like GroupPolicies, password files, xml files etc.
 
@@ -165,7 +195,7 @@ crackmapexec <protocol> -U username -P password -H target
 ```
 impacket-GetNPUsers -dc-ip <ip> <domain>/<account-name> -no-pass
 ```
-- It might throw an error saying **Clock skew too great**, install ntpdate, and run sudo ntpdate <dc-ip>
+- It might throw an error saying **Clock skew too great**, install ntpdate, and run ``sudo ntpdate <dc-ip>``
 - If we do get a ticket back, we can crack it using hashcat and get the password.
 ```
 hashcat -m 13100 hash.txt rockyou.txt 
